@@ -1,0 +1,90 @@
+const http = require('http');
+const https = require('https');
+
+class Response {
+
+    constructor({ resp, headers, respStatus, respCode } = options) {
+        this.raw = resp;
+        this.headers = new Map(Object.entries(headers));
+        this.status = respStatus;
+        this.statusCode = respCode;
+        this.ok = this.statusCode >= 200 && this.statusCode < 400;
+    }
+
+    buffer() {
+        return Buffer.from(this.raw);
+    }
+
+    json() {
+        try {
+        	return JSON.parse(this.raw);
+        } catch(e) {
+        	console.log(this.raw);
+        	return null;
+        }
+    }
+
+    text() {
+        return typeof this.raw === 'string'? this.raw: this.raw.toString();
+    }
+}
+
+function fetch(url, options = {}) {
+	const { method = 'GET', body = null, headers = {}, query = {} } = options;
+
+	return new Promise((resolve, reject) => {
+		const module = url.startsWith('http:') ? http : https;
+		const qs = Object.keys(query).length ? querystring.stringify(query) : null;
+
+		const request = module.request(url + (qs ? `?${qs}` : ''), {
+			method,
+			headers
+		}, (res) => {
+			let respText = '';
+
+			res.on('data', chunk => respText += chunk);
+			res.once('end', () => {
+				resolve(new Response({
+					resp: respText,
+					headers: res.headers,
+					respStatus: res.statusMessage,
+					respCode: res.statusCode
+				}));
+			});
+		});
+
+		request.once('error', reject);
+
+		if (body) request.write(body);
+		request.end();
+	});
+}
+
+const colors = {
+	reset: '\033[0m',
+	red: '\033[0;31m',
+	green: '\033[0;32m',
+	yellow: '\033[0;33m',
+	purple: '\033[0;35m'
+}
+
+const colorize = (color, text) => `${colors[color]}${text}${colors.reset}`;
+
+module.exports = {
+	Constants: require('./Constants'),
+	log: {
+		ok: function(...args) {
+			console.log(`[ ${colorize('green', 'OK')} ]`, ...args);
+		},
+		error: function(...args) {
+			console.log(`[ ${colorize('red', 'ERROR')} ]`, ...args);	
+		},
+		warn: function(...args) {
+			console.log(`[ ${colorize('yellow', 'WARN')} ]`, ...args);	
+		},
+		info: function(...args) {
+			console.log(`[ ${colorize('purple', 'INFO')} ]`, ...args);
+		}
+	},
+	fetch
+}

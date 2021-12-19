@@ -1,0 +1,1 @@
+# VLAD - very lame application dissatisfaction
