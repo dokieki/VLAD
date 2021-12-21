@@ -21,11 +21,12 @@ module.exports = function(token) {
 					Authorization: `Bot ${token}`,
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(options.body || {})
+				...options,
+				body: JSON.stringify(options.body || {}),
 			});
 
-			if (response.ok) log.ok(response.statusCode, url);
-			else log.error(response.statusCode, url, '\n', inspect(response.json(), {showHidden: true, depth: null}));
+			if (response.ok) log.ok(response.statusCode, options.method || 'GET', url);
+			else log.error(response.statusCode, options.method || 'GET', url, '\n', inspect(response.json(), {showHidden: true, depth: null}));
 
 			return response.json();
 		}

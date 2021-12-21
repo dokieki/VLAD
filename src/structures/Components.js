@@ -1,14 +1,11 @@
 const { Constants } = require('../util');
 
-// new Components([[new Button(), new Button()], ])
 class Components {
 	constructor(components) {
-		this._components = [];
-
 		this.components = [{
 			type: Constants.COMPONENT_TYPES.ACTION_ROW,
 			components: components
-		}]
+		}];
 	}
 }
 

@@ -11,19 +11,13 @@ module.exports = class Eval extends Command {
 		});
 	}
 
-	handler(client, message, args) {
+	handler(client, responder, args) {
 		try {
 			const ret = inspect(eval(args.code));
 
-			client.createMessage(message.channel_id, {
-				tts: false,
-				content: `\`\`\`js\n${ret}\`\`\``
-			});
+			responder.send(`\`\`\`js\n${ret}\`\`\``);
 		} catch(e) {
-			client.createMessage(message.channel_id, {
-				tts: false,
-				content: `\`\`\`js\n${e}\`\`\``
-			});
+			responder.send(`\`\`\`js\n${e}\`\`\``);
 		}
 	}
 }

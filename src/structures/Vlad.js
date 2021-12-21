@@ -7,11 +7,10 @@ const RequestHandler = require('./RequestHandler');
 const { log, Constants } = require('../util');
 
 module.exports = class Vlad extends EventEmitter {
-	#token;
 	constructor(token, options) {
 		super();
 
-		this.#token = token;
+		this.token = token;
 		this.prefix = options.prefix;
 		this.ws = null;
 		this.api = RequestHandler(token);
@@ -20,6 +19,8 @@ module.exports = class Vlad extends EventEmitter {
 		this.interval = null;
 		this.user = null;
 
+		this.intents = options.intents.reduce((a, v) => a |= v);
+
 		this.commandsPath = options.commandsPath;
 		this.eventsPath = options.eventsPath;
 
@@ -27,20 +28,22 @@ module.exports = class Vlad extends EventEmitter {
 		this.eventHandlers = new Map();
 	}
 
-	createInteractionResponse(type, id, token, data) {
-		return this.api.interactions[id][token].callback({
-			method: 'POST',
-			body: {
-				type,
-				data,
-			}
-		});
-	}
-
 	createMessage(channel, data) {
 		return this.api.channels[channel].messages({
 			method: 'POST',
 			body: typeof data == 'string'? {content: data}: data
+		})
+	}
+
+	setPresence(status, activity = {}) {
+		this.sendPkg({
+			op: 3,
+			d: {
+				since: null,
+				activities: [activity],
+				status,
+				afk: false
+			}
 		})
 	}
 
@@ -51,7 +54,7 @@ module.exports = class Vlad extends EventEmitter {
 			for (const command of fs.readdirSync(path.resolve(this.commandsPath, commandType))) {
 				const Command = require(path.resolve(this.commandsPath, commandType, command))
 
-				if (!Command || !Command.name) {
+				if (!Command) {
 					this.log.warn('Ignore', path.resolve(commandType, command));
 					continue;
 				}
@@ -99,12 +102,12 @@ module.exports = class Vlad extends EventEmitter {
 				return this.sendPkg({
 					op: 2,
 					d: {
-						token: this.#token,
-						intents: 513,
+						token: this.token,
+						intents: this.intents,
 						properties: {
 							$os: 'Linux',
-							$browser: 'DiscordBot',
-							$device: 'mobile'
+							$browser: 'VLAD (https://github.com/dokieki/VLAD)',
+							$device: 'desktop'
 						}
 					}
 				});
@@ -119,23 +122,12 @@ module.exports = class Vlad extends EventEmitter {
 
 		this.ws.on('close', (code, data) => {
 			this.log.error(code, data.toString());
+			this.log.info('Reconnect...');
+
+			this.ws = null;
+
+			this.initWS();
 		});
-	}
-
-	wsIdentify() {
-		const data = {
-			op: 2,
-			d: {
-				token: this.#token,
-				properties: {
-					$os: 'Android',
-					$browser: 'DiscordBot',
-					$device: 'mobile'
-				}
-			}
-		};
-
-		this.ws.send(JSON.stringify(data))
 	}
 
 	async connect() {

@@ -10,7 +10,7 @@ module.exports = class Help extends Command {
 		});
 	}
 
-	async handler(client, message, args) {
+	async handler(client, responder, args) {
 
 		if (args.command && client.commands.get(args.command)) {
 			const command = client.commands.get(args.command);
@@ -19,7 +19,7 @@ module.exports = class Help extends Command {
 
 			msg += command.description;
 
-			return client.createMessage(message.channel_id, msg);
+			return responder.send(msg);
 		}
 
 		const commands = {};
@@ -35,6 +35,6 @@ module.exports = class Help extends Command {
 		msg += Object.keys(commands).map(x => `\`${x}\` => ${commands[x].map(y => `\`${y}\``).join(', ')}`).join('\n');
 		msg += `\n\nType \`${client.prefix}help command_name\` for more information`;
 
-		client.createMessage(message.channel_id, msg);
+		responder.send(msg);
 	}
 }

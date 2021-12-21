@@ -11,14 +11,15 @@ module.exports = class Rule34 extends Command {
 		});
 	}
 
-	async handler(client, message, args) {
+	async handler(client, responder, args) {
 		const tags = args.tags.split(' ').map(x => `&tags=${x}`).join('');
 		const url = 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=20' + tags;
 		const response = (await fetch(url)).json();
+
+		if (!response || response.length <= 0) return responder.send('Капец ты извращенец, такого даже на rule34 нет');
+		
 		const images = [];
 
-		if (!response || response.length <= 0) return client.createMessage(message.channel_id, 'Капец ты извращенец, такого даже на rule34 нет');
-		
 		for (let img of response) {
 			images.push(new Embed({
 				title: img.image,
@@ -29,9 +30,9 @@ module.exports = class Rule34 extends Command {
 				}
 			}))
 		}
-		const pages = new Pages(images);
 
-		client.createMessage(message.channel_id, pages.toMessage())
-		.then(msg => pages.start(client, msg))
+		responder.createPages(images, false, {
+			responder
+		}).start();
 	}
 }

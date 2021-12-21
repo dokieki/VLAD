@@ -13,25 +13,24 @@ module.exports = class Command {
 		this.subCommands = options.subCommands;
 	}
 
-	execute(client, message, args) {
-		if (this.admin && !config.admins?.includes(message.author.id)) return;
+	execute(client, responder, args) {
+		if (this.admin && !config.admins?.includes(responder.message.author.id)) return;
 
 		if (this.subCommands?.[args[0]]) {
 			const command = new this.subCommands[args[0]]();
 
-			return command.execute(client, message, args.slice(1));
+			return command.execute(client, responder, args.slice(1));
 		}
 
 		const commandArguments = {};
 
 		for (let i = 0; i < this.args.length; ++i) {
-			if (this.args[i].all) {
-				commandArguments[this.args[i].name] = args.join(' ');
-				break;
+			if (!args[i] && this.args[i].required) {
+				return responder.send(`Не хватает аргументов: \`${this.args[i].name}\``);
 			}
 
-			if (!args[i] && this.args[i].required) {
-				return client.createMessage(message.channel_id, `Не хватает аргументов: \`${this.args[i].name}\``);
+			if (this.args[i].all) {
+				commandArguments[this.args[i].name] = args.join(' ');
 				break;
 			}
 
@@ -43,7 +42,6 @@ module.exports = class Command {
 			commandArguments[this.args[i].name] = args[i];
 		}
 
-		console.log(commandArguments);
-		return this.handler(client, message, commandArguments);
+		return this.handler(client, responder, commandArguments);
 	}
 }
