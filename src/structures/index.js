@@ -5,6 +5,7 @@ module.exports = {
 	Pages: require('./Pages'),
 	RequestHandler: require('./RequestHandler'),
 	Responder: require('./Responder'),
+	Interaction: require('./Interaction'),
 	Vlad: require('./Vlad'),
 	Embed: require('./Embed')
 }

@@ -1,4 +1,5 @@
 const Components = require('./Components');
+const Embed = require('./Embed');
 
 module.exports = class Pages {
 	constructor(pages = [], options = {}) {
@@ -17,7 +18,7 @@ module.exports = class Pages {
 	}
 
 	get data() {
-		return {embeds: [this.pages[this.page].embed]};
+		return this.pages[this.page] instanceof Embed? {embeds: [this.pages[this.page].embed]}: {content: this.pages[this.page].toString()};
 	}
 
 	add(data) {
@@ -71,7 +72,11 @@ module.exports = class Pages {
 		if (interaction) {
 			await this.init(interaction);
 		} else if (this.responder) {
-			const [ reply ] = await this.responder.send(this.pages[0], {
+			const ret = this.generator? await this.generator(this): null;
+
+			if (ret) this.add(ret);
+
+			const [ reply ] = await this.responder.send(this.pages[this.page], {
 				components: this.components
 			});
 

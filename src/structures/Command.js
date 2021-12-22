@@ -7,7 +7,6 @@ module.exports = class Command {
 		this.type = options.type;
 		this.args = options.args || [];
 		this.options = options.options;
-		this.slash = !!options.slash;
 		this.admin = !!options.admin;
 
 		this.subCommands = options.subCommands;
@@ -30,7 +29,7 @@ module.exports = class Command {
 			}
 
 			if (this.args[i].all) {
-				commandArguments[this.args[i].name] = args.join(' ');
+				commandArguments[this.args[i].name] = args.slice(i).join(' ');
 				break;
 			}
 

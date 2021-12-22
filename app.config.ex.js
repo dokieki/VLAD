@@ -3,5 +3,12 @@ module.exports = {
 	prefix: '',
 	admins: [
 		''
-	]
+	],
+	services: {
+		youtube: '',
+		mal: {
+			client: '',
+			key: ''
+		}
+	}
 }

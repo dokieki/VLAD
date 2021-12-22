@@ -10,13 +10,13 @@ class Components {
 }
 
 Components.Button = class Button {
-	constructor(name, id, style = 1, disabled = false) {
+	constructor(name, id, style = 1, emoji = null, disabled = false) {
 		this.type = Constants.COMPONENT_TYPES.BUTTON
 		this.style = style;
 		this.custom_id = id;
 		this.label = typeof name == 'object'? null: name;
 		this.disabled = disabled;
-		this.emoji = typeof name == 'object'? name: null 
+		this.emoji = (typeof name == 'object'? name: null) || emoji;
 	}
 }
 

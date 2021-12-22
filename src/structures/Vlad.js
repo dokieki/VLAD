@@ -28,10 +28,10 @@ module.exports = class Vlad extends EventEmitter {
 		this.eventHandlers = new Map();
 	}
 
-	createMessage(channel, data) {
+	createMessage(channel, data, options = {}) {
 		return this.api.channels[channel].messages({
 			method: 'POST',
-			body: typeof data == 'string'? {content: data}: data
+			body: typeof data == 'string'? {content: data, ...options}: data
 		})
 	}
 
@@ -54,7 +54,7 @@ module.exports = class Vlad extends EventEmitter {
 			for (const command of fs.readdirSync(path.resolve(this.commandsPath, commandType))) {
 				const Command = require(path.resolve(this.commandsPath, commandType, command))
 
-				if (!Command) {
+				if (!Command?.name) {
 					this.log.warn('Ignore', path.resolve(commandType, command));
 					continue;
 				}
@@ -75,8 +75,6 @@ module.exports = class Vlad extends EventEmitter {
 		}
 	}
 
-	registerSlashCommand() {}
-
 	sendPkg(data) {
 		return this.ws.send(JSON.stringify(data));
 	}
@@ -84,8 +82,8 @@ module.exports = class Vlad extends EventEmitter {
 	initWS() {
 		this.ws = new WebSocket(Constants.GATEWAY);
 
-		this.ws.on('message', (r) => {
-			const pkg = JSON.parse(r.toString());
+		this.ws.on('message', data => {
+			const pkg = JSON.parse(data.toString());
 
 			if (pkg.op == 11) {
 				this.heartbeat = pkg.d;
@@ -131,10 +129,9 @@ module.exports = class Vlad extends EventEmitter {
 	}
 
 	async connect() {
-		this.initCommands();
-
 		this.user = await this.api.users['@me']();
-		
+
+		this.initCommands();
 		this.initWS();
 	}
 }

@@ -1,4 +1,4 @@
-const { Vlad, Responder } = require('./structures');
+const { Vlad, Responder, Interaction } = require('./structures');
 const { Constants: {INTENTS}} = require('./util');
 
 const config = require('../app.config');

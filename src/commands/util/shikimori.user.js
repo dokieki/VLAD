@@ -23,7 +23,7 @@ module.exports = class ShikimoriUser extends Command {
 	async handler(client, responder, args) {
 		const response = (await fetch(`https://shikimori.one/api/users/${args.name}`)).json();
 
-		if (response?.code) return responder.send('eto who');
+		if (response?.code) return responder.error('Такого пользователя нет мда');
 
 		const components = new Components([
 			new Components.Button('Список аниме', 'anime-list', Constants.BUTTON_STYLES.SECONDARY)
@@ -48,8 +48,12 @@ module.exports = class ShikimoriUser extends Command {
 		reply.collector.once('collect', async interaction => {
 			const pages = responder.createPages([], true, {
 				generator: async (ctx) => {
-					const url = `https://shikimori.one/api/users/${args.name}/anime_rates?limit=15&page=${ctx.page + 1}`;
-					const animeList = (await fetch(url)).json();
+					const animeList = (await fetch(`https://shikimori.one/api/users/${args.name}/anime_rates`, {
+						query: {
+							limit: 15,
+							page: ctx.page + 1
+						}
+					})).json();
 
 					if (animeList?.length <= 0) return null;
 

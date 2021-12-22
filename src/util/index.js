@@ -1,6 +1,7 @@
 const http = require('http');
 const https = require('https');
 const querystring = require('querystring');
+const util = require('util');
 
 class Response {
 
@@ -20,7 +21,6 @@ class Response {
         try {
         	return JSON.parse(this.raw);
         } catch(e) {
-        	console.log(this.raw);
         	return null;
         }
     }
@@ -74,18 +74,10 @@ const colorize = (color, text) => `${colors[color]}${text}${colors.reset}`;
 module.exports = {
 	Constants: require('./Constants'),
 	log: {
-		ok: function(...args) {
-			console.log(`[ ${colorize('green', 'OK')} ]`, ...args);
-		},
-		error: function(...args) {
-			console.log(`[ ${colorize('red', 'ERROR')} ]`, ...args);	
-		},
-		warn: function(...args) {
-			console.log(`[ ${colorize('yellow', 'WARN')} ]`, ...args);	
-		},
-		info: function(...args) {
-			console.log(`[ ${colorize('purple', 'INFO')} ]`, ...args);
-		}
+		ok: (...args) => util.log(colorize('green', 'OK'), ...args),
+		error: (...args) => util.log(colorize('red', 'ERROR'), ...args),
+		warn: (...args) => util.log(colorize('yellow', 'WARN'), ...args),
+		info: (...args) => util.log(colorize('purple', 'INFO'), ...args)
 	},
 	fetch
 }

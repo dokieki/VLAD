@@ -12,9 +12,17 @@ module.exports = class Rule34 extends Command {
 	}
 
 	async handler(client, responder, args) {
-		const tags = args.tags.split(' ').map(x => `&tags=${x}`).join('');
-		const url = 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=20' + tags;
-		const response = (await fetch(url)).json();
+		const url = 'https://api.rule34.xxx/index.php';
+		const response = (await fetch(url, {
+			query: {
+				page: 'dapi',
+				s: 'post',
+				q: 'index',
+				json: 1,
+				limit: 20,
+				tags: args.tags.split(' ').map(x => `&tags=${x}`).join('')
+			}
+		})).json();
 
 		if (!response || response.length <= 0) return responder.send('Капец ты извращенец, такого даже на rule34 нет');
 		

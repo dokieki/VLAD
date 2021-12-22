@@ -1,26 +1,30 @@
 const { Command, Embed, Components } = require('../../structures');
-const { fetch } = require('../../util');
+const { fetch, Constants } = require('../../util');
 
 module.exports = class Shikimori extends Command {
 	constructor() {
 		super({
 			name: 'shikimori',
+			description: 'Search anime in shikimori',
 			args: [
-				{name: 'keywords', all: true, required: false}
+				{name: 'query', all: true, required: true}
 			],
-			admin: true,
 			subCommands: {
 				character: require('./shikimori.character'),
 				user: require('./shikimori.user')
-			}
+			},
+			admin: true
 		});
 	}
 
 	async handler(client, responder, args) {
-		const url = `https://shikimori.one/api/animes/search?q=${args.keywords}`;
-		const response = (await fetch(url)).json();
+		const response = (await fetch('https://shikimori.one/api/animes/search', {
+			query: {
+				q: args.query
+			}
+		})).json();
 
-		if (response?.code || response.length <= 0) return responder.send('eto who');
+		if (response?.code || response.length <= 0) return responder.error('Эм, нет такого....');
 
 		const components = new Components([
 			new Components.SelectMenu('Select one',
@@ -29,7 +33,7 @@ module.exports = class Shikimori extends Command {
 			)
 		]);
 
-		const [ reply ] = await responder.send(`Search results for \`${args.keywords}\``, {
+		const [ reply ] = await responder.send(`Вот ч нашел по запросу \`${args.query}\``, {
 			components
 		});
 
