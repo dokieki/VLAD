@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const RequestHandler = require('./RequestHandler');
+const Cache = require('./Cache');
 const { log, Constants } = require('../util');
 
 module.exports = class Vlad extends EventEmitter {
@@ -13,19 +14,33 @@ module.exports = class Vlad extends EventEmitter {
 		this.token = token;
 		this.prefix = options.prefix;
 		this.ws = null;
+		this.cache = new Cache(this);
 		this.api = RequestHandler(token);
 		this.log = log;
 		this.heartbeat = null;
 		this.interval = null;
-		this.user = null;
 
+		this.user = null;
 		this.intents = options.intents.reduce((a, v) => a |= v);
 
 		this.commandsPath = options.commandsPath;
 		this.eventsPath = options.eventsPath;
 
+		this.voiceSessions = new Map();
 		this.commands = new Map();
 		this.eventHandlers = new Map();
+	}
+
+	async fetch(type, id) {
+		if (this.cache[type].get(id)) return this.cache[type].get(id);
+
+		const response = await this.api[type][id]();
+
+		if (!response) return null;
+
+		this.cache[type].set(response.id, response);
+
+		return response;
 	}
 
 	createMessage(channel, data, options = {}) {

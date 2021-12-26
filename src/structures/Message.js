@@ -4,6 +4,7 @@ module.exports = class Message {
 
 		this.id = data.id;
 		this.channel_id = data.channel_id;
+		this.guild_id = data.guild_id;
 		this.author = data.author;
 		this.member = data.member;
 		this.type = data.type;
@@ -22,10 +23,10 @@ module.exports = class Message {
 		this.referenced_message = data.referenced_message;
 	}
 
-	edit(body) {
+	edit(data) {
 		return this.client.api.channels[this.channel_id].messages[this.id]({
 			method: 'PATCH',
-			body
+			body: typeof data == 'string'? {content: data}: data
 		});
 	}
 

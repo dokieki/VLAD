@@ -25,7 +25,7 @@ module.exports = class ShikimoriCharacter extends Command {
 				'search-ret',
 				response.slice(0, 25).map((x, i) => ({label: x.name, value: `${i}`}))
 			)
-		])
+		]);
 
 		const [ reply ] = await responder.send(`Вот ч нашел по запросу \`${args.query}\``, {
 			components

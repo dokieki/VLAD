@@ -1,5 +1,6 @@
-const { Command } = require('../../structures');
+const { Command, Voice } = require('../../structures');
 const { inspect } = require('util');
+
 module.exports = class Eval extends Command {
 	constructor() {
 		super({

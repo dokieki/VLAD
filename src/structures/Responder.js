@@ -34,7 +34,7 @@ module.exports = class Responder {
 	}
 
 	error(content) {
-		return this.send(`🤬 | ${content}`);
+		return this.send(`🤬 ${content}`);
 	}
 
 	async createPrompt(question) {

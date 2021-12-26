@@ -13,20 +13,12 @@ class Response {
         this.ok = this.statusCode >= 200 && this.statusCode < 400;
     }
 
-    buffer() {
-        return Buffer.from(this.raw);
-    }
-
     json() {
         try {
         	return JSON.parse(this.raw);
         } catch(e) {
         	return null;
         }
-    }
-
-    text() {
-        return typeof this.raw === 'string'? this.raw: this.raw.toString();
     }
 }
 
