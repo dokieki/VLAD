@@ -1,72 +1,53 @@
-const { Command, Components } = require('../../structures');
-const { fetch } = require('../../util');
-const config = require('../../../app.config');
+const { Command, Components, Lavalink: { Constants } } = require('../../structures');
 
-const ytdl = require('ytdl-core'); // 🐖 👈
-
-module.exports = class MusicPlayerSearch extends Command {
+module.exports = class PlayerSearch extends Command {
     constructor() {
         super({
             name: 'player.search',
             args: [
-                {name: 'query', all: true}
+                {name: 'query', all: true, required: true}
             ]
         });
     }
 
     async handler(client, responder, args) {
-        if (!client.voiceSessions.get('703581952090832976')) return responder.error('Ч надо .');
+        const session = client.lava.players.get(responder.message.guild_id);
 
-		const response = (await fetch('https://youtube.googleapis.com/youtube/v3/search', {
-			query: {
-				q: args.query,
-				key: config.services.youtube,
-				maxResults: 15,
-                part: 'snippet'
-			}
-		})).json();
+        if (!session) return responder.error('Я не в войсе');
+        
+        const response = (await client.lava.search(Constants.Services.Youtube, args.query)).tracks;
 
-		if (!response || response.length <= 0) return responder.error('Эм, нет такого....');
-
-		const items = response.items.filter(x => x.id.kind == 'youtube#video');
+        if (response.length <= 0) return responder.error('Такого нет');
 
         const components = new Components([
 			new Components.SelectMenu('Select one',
 				'search-ret',
-				items.map((x, i) => ({label: x.snippet.title.slice(0, 99), value: `${i}`}))
+				response.slice(0, 25).map((x, i) => ({label: x.info.title, value: `${i}`}))
 			)
 		]);
 
-		const [ reply ] = await responder.send(`Вот ч нашел по запросу \`${args.query}\``, {
+		const [ reply ] = await responder.send(`Вот ч нашел по запросу \`${args.query.slice(0, 50)}\``, {
 			components
 		});
-        
+
 		reply.collector.collect();
 
 		reply.collector.on('collect', async interaction => {
 			reply.collector.stop();
 
 			const index = parseInt(interaction.values[0]);
-
-            const session = client.voiceSessions.get('703581952090832976');
+			const track = response[index];
 
 			await interaction.createFollowupMessage();
 
-			session.playlist[items[index].snippet.title] = ytdl(`https://youtube.com/watch?v=${items[index].id.videoId}`);
+            session.queue.add(track);
 
-			session.playlist[items[index].snippet.title].once('error', () => {
-				delete session.playlist[items[index].snippet.title];
-
-				return interaction.edit({
-					content: `Чот ютуб троллит мда`,
-					components: []
-				});
-			});
-			
 			interaction.edit({
-				content: `\`${items[index].snippet.title}\` добавлен в плейлист`,
-				components: []
+				content: track.info.uri,
+                components: []
 			});
+
+            if (session.queue.length == 1) session.play();
 		});
     }
 }

@@ -10,5 +10,11 @@ module.exports = {
 			client: '',
 			key: ''
 		}
+	},
+	lavalink: {
+		port: 0000,
+		host: '',
+		user: '',
+		password: ''
 	}
 }

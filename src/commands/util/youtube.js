@@ -7,7 +7,7 @@ module.exports = class Youtube extends Command {
 		super({
 			name: 'youtube',
 			args: [
-				{name: 'query', required: true }
+				{name: 'query', all: true, required: true }
 			]
 		});
 	}

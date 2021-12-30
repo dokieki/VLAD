@@ -1,4 +1,10 @@
-const { Vlad, Responder, Interaction } = require('./structures');
+const {
+	Vlad,
+	Responder,
+	Lavalink: {
+		Andrey 
+	}
+} = require('./structures');
 const { Constants: {INTENTS}} = require('./util');
 
 const config = require('../app.config');
@@ -17,6 +23,13 @@ const client = new Vlad(config.token, {
 	eventsPath: __dirname + '/events'
 });
 
+client.lava = new Andrey({
+	client,
+	...config.lavalink
+});
+
+client.lava.createNode();
+
 client.on('READY', function(data) {
 	this.log.info(`beep boop ${data.user.username} is here`);
 	client.setPresence('online', {
@@ -34,4 +47,5 @@ client.on('MESSAGE_CREATE', function(message) {
 	if (command) return command.execute(client, new Responder(client, message), args.slice(1));
 });
 
+client.lava.connect();
 client.connect();

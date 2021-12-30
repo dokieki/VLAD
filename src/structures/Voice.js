@@ -29,12 +29,11 @@ module.exports = class Voice extends EventEmitter {
 
 		this.samplingRate = 48000;
         this.channels = 2;
-        this.frameDuration = 20;
+        this.frameDuration = 10;
         this.frameSize = this.samplingRate * this.frameDuration / 1000;
 
 		this.timestamp = 0;
 		this.sequence = 0;
-
 		this.secret = null;
 
         this.sendBuffer = Buffer.allocUnsafe(16 + 32 + MAX_FRAME_SIZE);
@@ -75,8 +74,6 @@ module.exports = class Voice extends EventEmitter {
 
 			switch(pkg.op) {
 				case VOICE_OPCODES.READY:
-					this.client.log.ok('[VOICE] READY');
-
                     this.ssrc = pkg.d.ssrc;
                     this.sendNonce.writeUInt32BE(this.ssrc, 8);
                     
@@ -125,14 +122,12 @@ module.exports = class Voice extends EventEmitter {
 
                     this.emit('ready');
 					break;
+
 				case VOICE_OPCODES.HELLO:
 					if (this._interval) clearInterval(this._interval);
 
 					this._interval = setInterval(() => {
-						this.sendPkg({
-							op: VOICE_OPCODES.HEARTBEAT,
-							d: Date.now()
-						});
+						this.heartbeat();
 					}, pkg.d.heartbeat_interval);
 
 					this.sendPkg({
@@ -196,7 +191,25 @@ module.exports = class Voice extends EventEmitter {
 		});
 	}
 
+	heartbeat() {
+		this.sendPkg({
+			op: VOICE_OPCODES.HEARTBEAT,
+			d: Date.now()
+		});
+		if (this.udpSocket) this.sendUDP(Buffer.from([0x80, 0xC8, 0x0, 0x0]));
+	}
+
 	_disconnect() {
+		this.sendPkg({
+			op: 4,
+			d: {
+				guild_id: this.guild,
+				channel_id: null,
+				self_mute: false,
+				self_deaf: false
+			}
+		})
+
 		this.ws.terminate();
 
 		this.ws = null;

@@ -1,30 +1,24 @@
-const { Command, Player } = require('../../structures');
-const fs = require('fs');
+const { Command } = require('../../structures');
 
-module.exports = class MusicPlayer extends Command {
+module.exports = class Player extends Command {
     constructor() {
         super({
             name: 'player',
+            args: [
+                {name: 'channel', required: true}
+            ],
             subCommands: {
                 search: require('./player.search'),
-                play: require('./player.play'),
-                next: require('./player.next')
-            },
-            admin: true
+                queue: require('./player.queue')
+            }
         });
     }
 
-    async handler(client, responder, args) {
-        const voice = new Player(client, '633230092016943107', '703581952090832976');
-        
-        voice.connect();
+    handler(client, responder, args) {
+        const player = client.lava.createPlayer(responder.message.guild_id);
 
-        voice.on('ready', () => {
-            responder.send('Ok ladno');
-        });
+        if (player.connected) responder.error('Я уже в канале втф');
 
-        voice.on('end', () => {
-            voice.disconnect();
-        });
+        player.join(args.channel);
     }
 }
