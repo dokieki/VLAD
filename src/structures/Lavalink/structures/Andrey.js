@@ -52,7 +52,10 @@ module.exports = class Andrey extends EventEmitter {
     }
 
     connect() {
+        this.client.log.info('[LAVALINK] loaded', this.nodes.length, 'node(s)');
+        
         for (let node of this.nodes) node.connect();
+
         this.emit('ready');
     }
 }

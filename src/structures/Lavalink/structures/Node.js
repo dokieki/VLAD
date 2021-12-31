@@ -74,8 +74,10 @@ module.exports = class Node extends EventEmitter {
                 return;
             }
 
-            if (pkg.op) this.emit(pkg.op, pkg);
+            if (pkg.op == 'event') return this.emit(pkg.type, pkg);
+            if (pkg.op) return this.emit(pkg.op, pkg);
         });
+    
 		this.ws.on('error', err => this.emit('error', err));
     }
 }

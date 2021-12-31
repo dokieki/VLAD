@@ -5,7 +5,11 @@ const {
 		Andrey 
 	}
 } = require('./structures');
-const { Constants: {INTENTS}} = require('./util');
+const {
+	Constants: {
+		INTENTS
+	}
+} = require('./util');
 
 const config = require('../app.config');
 
@@ -30,15 +34,17 @@ client.lava = new Andrey({
 
 client.lava.createNode();
 
-client.on('READY', function(data) {
-	this.log.info(`beep boop ${data.user.username} is here`);
+client.lava.on('ready', () => client.log.ok('[LAVALINK]', 'Connected'));
+
+client.on('READY', data => {
+	client.log.info(`beep boop ${data.user.username} is here`);
 	client.setPresence('online', {
 		name: 'epta .',
 		type: 0
 	});
 });
 
-client.on('MESSAGE_CREATE', function(message) {
+client.on('MESSAGE_CREATE', message => {
 	if (!message.content.startsWith(config.prefix)) return;
 
 	const args = message.content.slice(client.prefix.length).split(' ');

@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Queue = require('./Queue');
+const Constants = require('../Constants');
 
 module.exports = class Player extends EventEmitter {
     constructor(guild, options) {
@@ -16,9 +17,12 @@ module.exports = class Player extends EventEmitter {
         this.volume = 100;
         this.pause = false;
         this.connected = false;
-        this.timestamp = null;
+
+        this.position = 0;
 
         this.voiceState = {};
+        this.filtersName = [];
+        this.filters = {};
     }
 
     search(service, query) {
@@ -42,13 +46,32 @@ module.exports = class Player extends EventEmitter {
         
         this.manager.client.once('VOICE_SERVER_UPDATE', pkg => {
             this.voiceState.event = pkg;
-        
+
             this.node.send({
                 op: 'voiceUpdate',
                 guildId: this.guild,
                 ...this.voiceState  
             });
         });
+
+        this.node.on('playerUpdate', data => {
+            if (data.guildId != this.guild) return;
+
+            this.position = data.state.position;
+        });
+
+        this.node.on('TrackEndEvent', data => {
+            if (data.guildId != this.guild) return;
+
+            this.queue.splice(this.queue.current, 1);
+
+            if (this.queue[this.queue.current + 1]) {
+                this.queue.current += 1;
+                
+                this.play();
+            }
+            this.emit('end');
+        })
 
         this.connected = true;
         this.emit('ready');
@@ -76,7 +99,36 @@ module.exports = class Player extends EventEmitter {
         });
     }
 
+    setFilter(filter) {
+        if (!Constants.Filters[filter]) return false;
+        if (filter == 'reset') {
+            this.filtersName = [];
+            this.filters = {};
+
+            return this.node.send({
+                op: 'filters',
+                guildId: this.guild,
+                ...this.filters
+            });
+        }
+
+        this.filtersName.push(filter);
+
+        this.filters = {
+            ...this.filters,
+            ...Constants.Filters[filter]
+        };
+
+        return this.node.send({
+            op: 'filters',
+            guildId: this.guild,
+            ...this.filters
+        });
+    }
+
     play() {
+        this.total = this.queue[this.queue.current].info.length;
+        
         return this.node.send({
             op: 'play',
             guildId: this.guild,

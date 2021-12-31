@@ -13,6 +13,12 @@ module.exports = class PlayerQueue extends Command {
         if (!session) return responder.error('Я не в войсе');
         if (session.queue.length <= 0) return responder.error('Очередь пуста');
 
+        if (session.queue.length == 10) {
+            return responder.send(new Embed({
+                description: session.queue.map((x, i) => `\`${i + 1}\` \`${x.info.title}\``).join('\n')
+            }));
+        }
+
 		responder.createPages([], false, {
 			responder,
 			generator: ctx => {
